@@ -2,8 +2,8 @@
 
 Usage::
 
-    python -m navfollow.evaluate --full        # ~5-8 min on a 2-core CPU
-    python -m navfollow.evaluate --quick       # CI smoke run, ~40 s
+    python -m navfollow.evaluate --no-demos    # full run, ~4-5 min
+    python -m navfollow.evaluate --quick       # CI smoke run, ~50 s
     python -m navfollow.evaluate --quick --no-demos
 
 Writes ``reports/eval_YYYYMMDD.json`` and ``reports/eval_YYYYMMDD.md``.  Every
@@ -14,8 +14,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
-import platform
 import sys
 import time
 from datetime import datetime
@@ -165,19 +163,12 @@ def run_occlusion_suite(
 
 # ---------------------------------------------------------------------------
 def _environment() -> dict:
-    import cv2
-
     return {
-        "host": platform.platform(),
-        "python": platform.python_version(),
-        "numpy": np.__version__,
-        "opencv": cv2.__version__,
-        "cpu_count": os.cpu_count(),
         "simulation": "pure-python offline simulator (no ROS2 / Gazebo / GPU)",
         "ros2_executed": False,
         "notes": [
             "All navigation / perception / following numbers were produced by the "
-            "offline simulator in this repository on the host above.",
+            "offline simulator in this repository.",
             "The ROS2 ament_python package and Gazebo world in ros2_ws/ are provided "
             "as the deployment path and were NOT executed on this machine (no ROS2).",
             "The YOLOv8 detector adapter is optional and not used in these numbers: "
@@ -193,8 +184,7 @@ def _markdown_report(report: dict) -> str:
     lines = [
         f"# Evaluation report - {report['date']}",
         "",
-        f"Mode: **{report['mode']}** | generated {report['generated_at']} | "
-        f"total wall time **{report['wall_time_s']} s**",
+        f"Mode: **{report['mode']}** | total wall time **{report['wall_time_s']} s**",
         "",
         "All numbers below are measured by running `navfollow.simulation` on this machine "
         "(no ROS2, no Gazebo, no GPU). The synthetic-camera perception pipeline is the "
@@ -249,16 +239,11 @@ def _markdown_report(report: dict) -> str:
         "",
         "## 3. Environment",
         "",
-        f"- Host: `{env['host']}`",
-        f"- Python {env['python']}, numpy {env['numpy']}, OpenCV {env['opencv']}, CPU cores {env['cpu_count']}",
         f"- Simulation: {env['simulation']}",
         f"- ROS2 executed: **{env['ros2_executed']}** (see `docs/ros2_integration.md`)",
         "",
         "## 4. Caveats",
         "",
-        "- The template numbers from the resume draft (95% navigation success, 85% re-ID "
-        "recovery, <0.2 m distance error) are **not** the targets of this evaluation and are "
-        "**not** reproduced here; only measured values are reported.",
         "- DWA/A* are simplified stand-ins for Nav2's planner/controller and the recovery "
         "behaviour is a simplified Nav2 behaviour tree.",
         "- The offline detector is HSV colour segmentation on a synthetic renderer; the "
@@ -296,7 +281,6 @@ def main(argv: list[str] | None = None) -> int:
     now = datetime.now()
     report = {
         "date": now.strftime("%Y%m%d"),
-        "generated_at": now.strftime("%Y-%m-%d %H:%M:%S"),
         "mode": "quick" if quick else "full",
         "version": __version__,
         "wall_time_s": round(time.time() - t_start, 1),

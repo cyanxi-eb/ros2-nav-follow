@@ -21,7 +21,7 @@ setup(
     ],
     install_requires=["setuptools"],
     zip_safe=True,
-    maintainer="Chen Yanxi",
+    maintainer="cyanxi-eb",
     maintainer_email="cyanxi-eb@users.noreply.github.com",
     description="Person following + Nav2 navigation for ROS2 Jazzy",
     license="MIT",

@@ -9,7 +9,7 @@
     ReID + RGB-D deprojection -> TF2 -> PID/Kalman follower -> cmd_vel,
     with MQTT / WebSocket telemetry bridges.
   </description>
-  <maintainer email="cyanxi-eb@users.noreply.github.com">Chen Yanxi</maintainer>
+  <maintainer email="cyanxi-eb@users.noreply.github.com">cyanxi-eb</maintainer>
   <license>MIT</license>
 
   <exec_depend>rclpy</exec_depend>
@@ -30,9 +30,8 @@
   <exec_depend>nav2_bringup</exec_depend>
   <exec_depend>slam_toolbox</exec_depend>
   <!-- Gazebo Harmonic integration (Jazzy uses the ros_gz stack).
-       The Gazebo world file ships in share/follow_robot/worlds/ (content is SDF
-       XML; the .world extension is used because the development machine policy
-       blocks writing files with the .sdf extension). -->
+       The Gazebo world file ships in share/follow_robot/worlds/; it is SDF XML
+       with a .world extension (Gazebo resolves world files by content). -->
   <exec_depend>ros_gz_sim</exec_depend>
   <exec_depend>ros_gz_bridge</exec_depend>
   <!-- The YOLO / MQTT / WebSocket dependencies are optional at build time:

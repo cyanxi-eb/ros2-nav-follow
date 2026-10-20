@@ -1,19 +1,13 @@
 {
   "date": "20261020",
-  "generated_at": "2026-10-20 19:36:55",
   "mode": "full",
   "version": "1.0.0",
   "wall_time_s": 245.3,
   "environment": {
-    "host": "Windows-10-10.0.19045-SP0",
-    "python": "3.12.14",
-    "numpy": "2.5.4",
-    "opencv": "5.0.0",
-    "cpu_count": 4,
     "simulation": "pure-python offline simulator (no ROS2 / Gazebo / GPU)",
     "ros2_executed": false,
     "notes": [
-      "All navigation / perception / following numbers were produced by the offline simulator in this repository on the host above.",
+      "All navigation / perception / following numbers were produced by the offline simulator in this repository.",
       "The ROS2 ament_python package and Gazebo world in ros2_ws/ are provided as the deployment path and were NOT executed on this machine (no ROS2).",
       "The YOLOv8 detector adapter is optional and not used in these numbers: the CPU-only evaluation uses the synthetic-camera colour detector."
     ]
