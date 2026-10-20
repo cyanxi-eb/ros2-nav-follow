@@ -86,9 +86,9 @@
 ## 3. 可复现性
 
 ```bash
-python -m navfollow.evaluate --full-report     # 全量（约 4–5 分钟）
-python -m navfollow.evaluate --quick           # CI（约 50s）
-python -m navfollow.demo                       # 3 段 demo GIF（约 70s）
+python -m navfollow.evaluate --no-demos      # 全量（约 4–5 分钟）
+python -m navfollow.evaluate --quick         # CI（约 50s）
+python -m navfollow.demo                     # 3 段 demo GIF（约 70s）
 ```
 
 trial 的 seed 固定（导航 `seed_base=1000 + k`，遮挡 `seed_base=2000 + e`），
