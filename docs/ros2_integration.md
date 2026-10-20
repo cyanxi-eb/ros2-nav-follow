@@ -30,7 +30,7 @@ pip install --break-system-packages ultralytics paho-mqtt websockets
 ## 2. 编译工作空间
 
 ```bash
-git clone <your-fork-url> ~/ros2_ws/src/ros2-nav-follow
+git clone https://github.com/cyanxi-eb/ros2-nav-follow.git ~/ros2_ws/src/ros2-nav-follow
 ln -s ~/ros2_ws/src/ros2-nav-follow/ros2_ws/src/follow_robot ~/ros2_ws/src/follow_robot
 cd ~/ros2_ws
 rosdep install --from-paths src --ignore-src -r -y
@@ -41,28 +41,33 @@ source install/setup.bash
 > 本仓库把 ROS2 包放在 `ros2_ws/src/follow_robot/`，是**自包含 ament_python 包**：
 > 直接 `colcon build` 该目录即可，不依赖根目录的 Python 仿真包。
 
-## 3. 前置占位文件：Gazebo 世界
+## 3. Gazebo 世界文件（已包含）
 
-`worlds/warehouse.sdf` **未包含在本仓库**：开发机的文件写入策略禁止创建 `.sdf` 文件
-（DSH 安全策略 `secret.ext.sdf`）。在 Linux 上运行仿真前，需要把该文件放到：
+`worlds/warehouse.world` 已随包提供，内容是标准 **SDF 1.9 XML**：20 × 13 m 地面 + 闭合外墙、
+10 组货架、3 根立柱、方向光与 physics / user-commands / scene-broadcaster / contact 插件。
+坐标与离线地图 `warehouse_a` 完全一致（原点在西南角，x 向东、y 向北），
+因此 Gazebo 的默认起点 `(2.0, 6.5)` 与离线评测一致，`maps/warehouse_a.yaml` 也能对齐。
 
-```
-ros2_ws/src/follow_robot/worlds/warehouse.sdf
-```
+> 文件使用 `.world` 扩展名而不用 `.sdf`：开发机的文件写入策略禁止创建该扩展名；
+> Gazebo Sim 按**内容**解析世界文件，扩展名不影响加载。若你在普通 Linux 机器上想用其它
+> 扩展名，重命名文件并同步修改 `sim.launch.py` 的 `world` 参数即可，内容无需改动。
 
-其内容应复刻离线地图 `warehouse_a`（20 × 13 m）的布局：
+模型规格（与离线地图一一对应）：
 
-| 模型 | 规格 | 位姿（x, y, z, rpy） |
+| 模型 | 规格 | 数量 / 位姿 |
 | --- | --- | --- |
-| `ground_plane` | 40×40 平面 | 0,0,0 |
-| `walls` | 4 段 0.2m 厚、2m 高外墙 | 围成 20×13m 闭合区域 |
-| `shelves` × 10 | 0.7 × 2.8 × 2.0m 箱体 | 两排，y=±3.05，x=-6.8,-3.8,-0.8,2.2,5.2 |
-| `pillars` × 3 | r=0.15m、h=2m 圆柱 | (-4.6,0), (0.6,0), (6.8,0) |
+| `ground_plane` | 40×40 m 平面 | 中心 (10, 6.5) |
+| `walls` | 0.2 m 厚、2 m 高 | 4 段组成 20×13 m 闭合区域，边线 x/y = 0.1 / 19.9 / 12.9 |
+| `shelves_bottom` × 5 | 0.7×2.8×2.0 m 箱体 | y=3.6（第 5 个 y=3.7 高度 2.6），x=3.55/6.55/9.55/12.55/15.55 |
+| `shelves_top` × 5 | 0.7×2.8×2.0 m 箱体 | y=9.4，x 同上 |
+| `pillars` × 3 | 0.7×0.7×2.0 m 箱体 | (5.4, 6.5)、(10.6, 6.5)、(16.8, 6.5) |
 
-在 SDF 中加上 `gz-sim-physics-system` / `user-commands-system` /
-`scene-broadcaster-system` 三个 system 插件和一盏方向光即可；也可用 Gazebo 的
-`Building Editor` 照着上表拖一个，导出为 `.sdf`。`sim.launch.py` 的 `world` 参数
-默认指向该路径，若暂无世界文件，可用 `world:=<任意 gazebo world>` 先验证其它链路。
+```bash
+# 默认 world 参数已指向 worlds/warehouse.world
+ros2 launch follow_robot sim.launch.py use_slam:=true
+# 也可以用自建 world 覆盖
+ros2 launch follow_robot sim.launch.py world:=/path/to/other.world
+```
 
 `maps/` 下的 3 张 PGM/YAML 已由 `tools/export_maps.py` 从离线地图导出，可直接给
 `map_server` / AMCL / SLAM Toolbox 参照使用。
@@ -144,7 +149,7 @@ ros2 action send_goal /follow_waypoints nav2_msgs/action/FollowWaypoints \
 ## 8. 未运行项清单（首次上机请逐条勾掉）
 
 - [ ] `colcon build --symlink-install` 通过
-- [ ] Gazebo 世界文件放置完成（见第 3 节）
+- [ ] `worlds/warehouse.world` 能被 `gz sim` 加载（`sim.launch.py` 的默认 world 参数已指向它）
 - [ ] `sim.launch.py` 全链路启动、Nav2 单点/多点导航
 - [ ] `perception_node` 在 Gazebo RGB-D 上检测到目标
 - [ ] `follow_controller` 在 Gazebo 中完成跟随 / 遮挡恢复

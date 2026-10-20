@@ -96,7 +96,7 @@ flowchart LR
 ### 4.1 Windows / macOS / Linux：离线仿真（本机即可复现全部指标）
 
 ```bash
-git clone <your-fork-url> && cd ros2-nav-follow
+git clone https://github.com/cyanxi-eb/ros2-nav-follow.git && cd ros2-nav-follow
 python3.12 -m venv .venv                       # Python 3.12
 # Windows: .venv\Scripts\activate      Linux/macOS: source .venv/bin/activate
 pip install -r requirements.txt
@@ -136,8 +136,9 @@ ros2 launch follow_robot follow.launch.py map:=$HOME/maps/warehouse_a.yaml
 
 > **诚实声明**：ROS2 / Gazebo / 真机链路**没有在开发机运行过**（开发机为 Windows，无 ROS2）。
 > `ros2_ws/` 代码通过 `python -m compileall -q ros2_ws` 语法检查与人工 review；首次上机需按
-> `docs/ros2_integration.md` 第 8 节逐条验证。`worlds/warehouse.sdf` 因开发机文件策略限制未提交，
-> 需按文档第 3 节放置（离线 `maps/` 已生成）。
+> `docs/ros2_integration.md` 第 8 节逐条验证。Gazebo 世界文件已随仓库提供：`worlds/warehouse.world`
+> （内容为标准 SDF 1.9 XML；因开发机文件策略禁止写 `.sdf` 扩展名，故使用 `.world` 扩展名，
+> Gazebo Sim 按内容解析、扩展名不影响加载）。离线 `maps/` 3 张 PGM/YAML 也已生成。
 
 ## 5. 话题与服务表
 
@@ -209,7 +210,8 @@ python -m navfollow.evaluate --no-demos      # 约 4–5 分钟，确定性
 - 自动化评测用的是合成相机 + HSV 颜色检测器，**YOLOv8n 适配器不参与评测**（本机无 GPU、不装 torch）；
 - DWA/A* 是 Nav2 的简化替身，未复现 Nav2 的 behavior tree、costmap 插件组合与 AMCL 定位误差；
 - 遮挡最长 2.7s（< `occluded_timeout` 3.2s），>3.2s 的长时间遮挡、多人密集交叉、光照变化未评测；
-- `worlds/warehouse.sdf` 因开发机文件策略未提交（见 `docs/ros2_integration.md` 第 3 节）。
+- Gazebo 世界文件 `worlds/warehouse.world` 已提供（SDF 内容、`.world` 扩展名），但**未在本机加载验证**，
+  模型按离线 `warehouse_a` 地图坐标 1:1 摆放。
 
 **下一步（按优先级）**
 
@@ -242,7 +244,7 @@ ros2-nav-follow/
 │   │                              # mqtt_bridge / ws_bridge / *_core 算法模块
 │   ├── launch/                    # sim.launch.py、follow.launch.py、robot_state.launch.py
 │   ├── config/                    # nav2_params.yaml（含注释）、follow.yaml
-│   ├── urdf/ worlds/ rviz/ maps/  # 机器人模型、Gazebo 世界（见文档）、rviz、PGM 地图
+│   ├── urdf/ worlds/ rviz/ maps/  # 机器人模型、Gazebo 世界 warehouse.world、rviz、PGM 地图
 │   └── package.xml / setup.py
 ├── docs/                          # 架构 / 评测 / 失败案例 / 标定 / 真机 / ROS2 集成
 ├── demos/                         # 3 段真实仿真 GIF

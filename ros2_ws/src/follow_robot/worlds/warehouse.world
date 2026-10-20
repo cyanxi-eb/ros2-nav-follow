@@ -1,0 +1,164 @@
+<?xml version="1.0" ?>
+<!--
+  warehouse.world - Gazebo Harmonic world for sim.launch.py.
+
+  The content of this file is standard SDF 1.9 XML (Gazebo Sim parses the file
+  by content, the extension is irrelevant).  The `.world` extension is used
+  because the development machine's file policy blocks writing files with the
+  `.sdf` extension; on a normal Linux/ROS2 machine this file may be renamed to
+  `warehouse.world` or kept as-is - the launch file points at this path.
+
+  Coordinate system: identical to the offline occupancy maps in
+  ros2_ws/src/follow_robot/maps/ (origin at the south-west corner, x east,
+  y north, 20 x 13 m).  This lets the same start pose (2.0, 6.5, 0) be used in
+  Gazebo and in the offline simulator, and the exported PGM/YAML map lines up
+  with the world.
+
+  Contents:
+    * ground plane 40 x 40 m
+    * closed 20 x 13 m wall box (0.2 m thick, 2 m high)
+    * 10 shelving units (0.7 x 2.8 x 2.0 m), two rows at y = 2.2-5.0 and 8.0-10.8
+    * 3 pillars (0.7 x 0.7 x 2.0 m) in the central aisle at (5.4, 6.5),
+      (10.6, 6.5), (16.8, 6.5)
+  The robot is spawned by sim.launch.py from the URDF (ros_gz_sim create), and
+  the follow target can be spawned as a coloured cylinder with:
+    ros2 run ros_gz_sim create -name target_person -x 2.6 -y 7.35 -z 0.85 \
+      -shape cylinder -size 0.28,1.7
+  The sphere/cylinder target body must be re-created by the user (Gazebo's
+  `create` CLI cannot colour it); the `scripts/spawn_person.py` helper is a
+  suggested extension point, not part of the tested code.
+-->
+<sdf version="1.9">
+  <world name="warehouse">
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
+    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"/>
+    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"/>
+    <plugin filename="gz-sim-contact-system" name="gz::sim::systems::Contact"/>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>10 6.5 10 0 0 0</pose>
+      <diffuse>0.9 0.9 0.9 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <direction>-0.3 0.2 -0.95</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <pose>10 6.5 0 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>40 40</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>40 40</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.75 0.74 0.70 1</ambient>
+            <diffuse>0.75 0.74 0.70 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- outer walls: closed 20 x 13 m box, matching maps/warehouse_a.pgm -->
+    <model name="walls">
+      <static>true</static>
+      <link name="link">
+        <visual name="wall_south">
+          <pose>10 0.1 1.0 0 0 0</pose>
+          <geometry><box><size>20 0.2 2.0</size></box></geometry>
+        </visual>
+        <collision name="wall_south">
+          <pose>10 0.1 1.0 0 0 0</pose>
+          <geometry><box><size>20 0.2 2.0</size></box></geometry>
+        </collision>
+        <visual name="wall_north">
+          <pose>10 12.9 1.0 0 0 0</pose>
+          <geometry><box><size>20 0.2 2.0</size></box></geometry>
+        </visual>
+        <collision name="wall_north">
+          <pose>10 12.9 1.0 0 0 0</pose>
+          <geometry><box><size>20 0.2 2.0</size></box></geometry>
+        </collision>
+        <visual name="wall_west">
+          <pose>0.1 6.5 1.0 0 0 0</pose>
+          <geometry><box><size>0.2 13 2.0</size></box></geometry>
+        </visual>
+        <collision name="wall_west">
+          <pose>0.1 6.5 1.0 0 0 0</pose>
+          <geometry><box><size>0.2 13 2.0</size></box></geometry>
+        </collision>
+        <visual name="wall_east">
+          <pose>19.9 6.5 1.0 0 0 0</pose>
+          <geometry><box><size>0.2 13 2.0</size></box></geometry>
+        </visual>
+        <collision name="wall_east">
+          <pose>19.9 6.5 1.0 0 0 0</pose>
+          <geometry><box><size>0.2 13 2.0</size></box></geometry>
+        </collision>
+      </link>
+    </model>
+
+    <!-- shelving units, bottom row (y = 2.2 .. 5.0) -->
+    <model name="shelves_bottom">
+      <static>true</static>
+      <link name="link">
+        <visual name="b1"><pose>3.55 3.6 1.0 0 0 0</pose><geometry><box><size>0.7 2.8 2.0</size></box></geometry></visual>
+        <collision name="b1"><pose>3.55 3.6 1.0 0 0 0</pose><geometry><box><size>0.7 2.8 2.0</size></box></geometry></collision>
+        <visual name="b2"><pose>6.55 3.6 1.0 0 0 0</pose><geometry><box><size>0.7 2.8 2.0</size></box></geometry></visual>
+        <collision name="b2"><pose>6.55 3.6 1.0 0 0 0</pose><geometry><box><size>0.7 2.8 2.0</size></box></geometry></collision>
+        <visual name="b3"><pose>9.55 3.6 1.0 0 0 0</pose><geometry><box><size>0.7 2.8 2.0</size></box></geometry></visual>
+        <collision name="b3"><pose>9.55 3.6 1.0 0 0 0</pose><geometry><box><size>0.7 2.8 2.0</size></box></geometry></collision>
+        <visual name="b4"><pose>12.55 3.6 1.0 0 0 0</pose><geometry><box><size>0.7 2.8 2.0</size></box></geometry></visual>
+        <collision name="b4"><pose>12.55 3.6 1.0 0 0 0</pose><geometry><box><size>0.7 2.8 2.0</size></box></geometry></collision>
+        <visual name="b5"><pose>15.55 3.7 1.0 0 0 0</pose><geometry><box><size>0.7 2.6 2.0</size></box></geometry></visual>
+        <collision name="b5"><pose>15.55 3.7 1.0 0 0 0</pose><geometry><box><size>0.7 2.6 2.0</size></box></geometry></collision>
+      </link>
+    </model>
+
+    <!-- shelving units, top row (y = 8.0 .. 10.8) -->
+    <model name="shelves_top">
+      <static>true</static>
+      <link name="link">
+        <visual name="t1"><pose>3.55 9.4 1.0 0 0 0</pose><geometry><box><size>0.7 2.8 2.0</size></box></geometry></visual>
+        <collision name="t1"><pose>3.55 9.4 1.0 0 0 0</pose><geometry><box><size>0.7 2.8 2.0</size></box></geometry></collision>
+        <visual name="t2"><pose>6.55 9.4 1.0 0 0 0</pose><geometry><box><size>0.7 2.8 2.0</size></box></geometry></visual>
+        <collision name="t2"><pose>6.55 9.4 1.0 0 0 0</pose><geometry><box><size>0.7 2.8 2.0</size></box></geometry></collision>
+        <visual name="t3"><pose>9.55 9.4 1.0 0 0 0</pose><geometry><box><size>0.7 2.8 2.0</size></box></geometry></visual>
+        <collision name="t3"><pose>9.55 9.4 1.0 0 0 0</pose><geometry><box><size>0.7 2.8 2.0</size></box></geometry></collision>
+        <visual name="t4"><pose>12.55 9.4 1.0 0 0 0</pose><geometry><box><size>0.7 2.8 2.0</size></box></geometry></visual>
+        <collision name="t4"><pose>12.55 9.4 1.0 0 0 0</pose><geometry><box><size>0.7 2.8 2.0</size></box></geometry></collision>
+        <visual name="t5"><pose>15.55 9.4 1.0 0 0 0</pose><geometry><box><size>0.7 2.8 2.0</size></box></geometry></visual>
+        <collision name="t5"><pose>15.55 9.4 1.0 0 0 0</pose><geometry><box><size>0.7 2.8 2.0</size></box></geometry></collision>
+      </link>
+    </model>
+
+    <!-- three pillars in the central aisle: a person can hide behind them -->
+    <model name="pillars">
+      <static>true</static>
+      <link name="link">
+        <visual name="p1"><pose>5.4 6.5 1.0 0 0 0</pose><geometry><box><size>0.7 0.7 2.0</size></box></geometry></visual>
+        <collision name="p1"><pose>5.4 6.5 1.0 0 0 0</pose><geometry><box><size>0.7 0.7 2.0</size></box></geometry></collision>
+        <visual name="p2"><pose>10.6 6.5 1.0 0 0 0</pose><geometry><box><size>0.7 0.7 2.0</size></box></geometry></visual>
+        <collision name="p2"><pose>10.6 6.5 1.0 0 0 0</pose><geometry><box><size>0.7 0.7 2.0</size></box></geometry></collision>
+        <visual name="p3"><pose>16.8 6.5 1.0 0 0 0</pose><geometry><box><size>0.7 0.7 2.0</size></box></geometry></visual>
+        <collision name="p3"><pose>16.8 6.5 1.0 0 0 0</pose><geometry><box><size>0.7 0.7 2.0</size></box></geometry></collision>
+      </link>
+    </model>
+  </world>
+</sdf>

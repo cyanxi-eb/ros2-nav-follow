@@ -29,7 +29,12 @@
   <exec_depend>xacro</exec_depend>
   <exec_depend>nav2_bringup</exec_depend>
   <exec_depend>slam_toolbox</exec_depend>
-  <exec_depend>gazebo_ros</exec_depend>
+  <!-- Gazebo Harmonic integration (Jazzy uses the ros_gz stack).
+       The Gazebo world file ships in share/follow_robot/worlds/ (content is SDF
+       XML; the .world extension is used because the development machine policy
+       blocks writing files with the .sdf extension). -->
+  <exec_depend>ros_gz_sim</exec_depend>
+  <exec_depend>ros_gz_bridge</exec_depend>
   <!-- The YOLO / MQTT / WebSocket dependencies are optional at build time:
        install them manually on the robot:
          pip install ultralytics paho-mqtt websockets

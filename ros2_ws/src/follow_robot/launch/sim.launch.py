@@ -34,7 +34,12 @@ def generate_launch_description() -> LaunchDescription:
     declare = [
         DeclareLaunchArgument("use_sim_time", default_value="true"),
         DeclareLaunchArgument("use_slam", default_value="true"),
-        DeclareLaunchArgument("world", default_value=os.path.join(pkg, "worlds", "warehouse.sdf")),
+        DeclareLaunchArgument(
+            "world",
+            default_value=os.path.join(pkg, "worlds", "warehouse.world"),
+            description="Gazebo world (content is SDF XML; the .world extension is used "
+            "because the development machine policy blocks writing .sdf files)",
+        ),
         DeclareLaunchArgument("map", default_value=os.path.join(pkg, "maps", "warehouse_a.yaml")),
         DeclareLaunchArgument("use_mqtt", default_value="false"),
         DeclareLaunchArgument("use_ws", default_value="false"),
