@@ -1,0 +1,7 @@
+# Offline simulator + evaluation dependencies.
+# The ROS2 package (ros2_ws/) has its own dependencies, see docs/ros2_integration.md.
+numpy>=1.26,<3.0
+opencv-python-headless>=4.8,<6.0
+pillow>=10.0
+pytest>=8.0
+pyyaml>=6.0
