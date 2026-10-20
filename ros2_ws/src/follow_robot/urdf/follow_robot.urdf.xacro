@@ -1,0 +1,198 @@
+<?xml version="1.0"?>
+<!--
+  follow_robot: differential-drive base with a 2-D lidar and an RGB-D camera.
+
+  Frames (REP-105 / REP-103):
+    odom -> base_link -> {laser, camera_link -> camera_optical}
+    map  -> odom (published by AMCL / SLAM Toolbox, not by this URDF)
+
+  Hardware mapping:
+    wheel_separation 0.32 m  (see docs/real_robot.md)
+    laser            RPLIDAR A1 at 0.22 m height
+    camera           depth camera at 1.05 m, 8 deg downward tilt
+
+  Launch with use_sim:=true to enable the Gazebo Harmonic sensors/plugins.
+-->
+<robot name="follow_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:arg name="use_sim" default="true"/>
+  <xacro:property name="use_sim" value="$(arg use_sim)"/>
+
+  <xacro:property name="base_radius" value="0.18"/>
+  <xacro:property name="wheel_separation" value="0.32"/>
+  <xacro:property name="wheel_radius" value="0.065"/>
+  <xacro:property name="camera_x" value="0.12"/>
+  <xacro:property name="camera_y" value="0.0"/>
+  <xacro:property name="camera_z" value="1.05"/>
+  <xacro:property name="camera_pitch" value="0.14"/>
+
+  <material name="grey"><color rgba="0.55 0.57 0.60 1.0"/></material>
+  <material name="dark"><color rgba="0.12 0.13 0.15 1.0"/></material>
+  <material name="blue"><color rgba="0.15 0.35 0.75 1.0"/></material>
+
+  <!-- ======================= base ======================= -->
+  <link name="base_link">
+    <visual>
+      <origin xyz="0 0 0.10" rpy="0 0 0"/>
+      <geometry><cylinder radius="0.19" length="0.20"/></geometry>
+      <material name="blue"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.10" rpy="0 0 0"/>
+      <geometry><cylinder radius="0.19" length="0.20"/></geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0 0 0.10"/>
+      <mass value="2.2"/>
+      <inertia ixx="0.02" ixy="0" ixz="0" iyy="0.02" iyz="0" izz="0.035"/>
+    </inertial>
+  </link>
+
+  <link name="base_footprint"/>
+  <joint name="base_footprint_joint" type="fixed">
+    <parent link="base_footprint"/>
+    <child link="base_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ======================= wheels ======================= -->
+  <xacro:macro name="wheel" params="side reflect">
+    <link name="${side}_wheel_link">
+      <visual>
+        <origin rpy="1.5707963 0 0" xyz="0 0 0"/>
+        <geometry><cylinder radius="${wheel_radius}" length="0.04"/></geometry>
+        <material name="dark"/>
+      </visual>
+      <collision>
+        <origin rpy="1.5707963 0 0" xyz="0 0 0"/>
+        <geometry><cylinder radius="${wheel_radius}" length="0.04"/></geometry>
+      </collision>
+      <inertial>
+        <mass value="0.15"/>
+        <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
+      </inertial>
+    </link>
+    <joint name="${side}_wheel_joint" type="continuous">
+      <parent link="base_link"/>
+      <child link="${side}_wheel_link"/>
+      <origin xyz="0 ${reflect * wheel_separation / 2} 0.065" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+      <dynamics damping="0.05" friction="0.02"/>
+    </joint>
+  </xacro:macro>
+  <xacro:wheel side="left" reflect="1"/>
+  <xacro:wheel side="right" reflect="-1"/>
+
+  <link name="caster_link">
+    <visual><geometry><sphere radius="0.03"/></geometry><material name="grey"/></visual>
+    <collision><geometry><sphere radius="0.03"/></geometry></collision>
+    <inertial><mass value="0.05"/><inertia ixx="1e-5" ixy="0" ixz="0" iyy="1e-5" iyz="0" izz="1e-5"/></inertial>
+  </link>
+  <joint name="caster_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="caster_link"/>
+    <origin xyz="-0.14 0 0.03" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ======================= lidar (RPLIDAR A1) ======================= -->
+  <link name="laser">
+    <visual>
+      <origin xyz="0 0 0.02"/>
+      <geometry><cylinder radius="0.035" length="0.04"/></geometry>
+      <material name="dark"/>
+    </visual>
+    <inertial><mass value="0.17"/><inertia ixx="1e-4" ixy="0" ixz="0" iyy="1e-4" iyz="0" izz="1e-4"/></inertial>
+  </link>
+  <joint name="laser_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="laser"/>
+    <origin xyz="0.08 0 0.22" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ======================= camera (extrinsics = calibration) ======= -->
+  <link name="camera_link">
+    <visual>
+      <geometry><box size="0.03 0.09 0.03"/></geometry>
+      <material name="dark"/>
+    </visual>
+    <inertial><mass value="0.08"/><inertia ixx="1e-5" ixy="0" ixz="0" iyy="1e-5" iyz="0" izz="1e-5"/></inertial>
+  </link>
+  <!-- pitch=+0.14 rad tilts the camera 8 deg downwards; update this joint after
+       the physical camera-base calibration (docs/calibration.md) -->
+  <joint name="camera_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="camera_link"/>
+    <origin xyz="${camera_x} ${camera_y} ${camera_z}" rpy="0 ${camera_pitch} 0"/>
+  </joint>
+  <link name="camera_optical"/>
+  <!-- REP-103 optical frame: x right, y down, z forward -->
+  <joint name="camera_optical_joint" type="fixed">
+    <parent link="camera_link"/>
+    <child link="camera_optical"/>
+    <origin xyz="0 0 0" rpy="-1.5707963 0 -1.5707963"/>
+  </joint>
+
+  <!-- ======================= Gazebo Harmonic ======================= -->
+  <xacro:if value="${use_sim}">
+    <gazebo reference="base_link">
+      <self_collide>false</self_collide>
+    </gazebo>
+    <gazebo reference="laser">
+      <sensor name="lidar" type="gpu_lidar">
+        <topic>scan</topic>
+        <update_rate>10.0</update_rate>
+        <lidar>
+          <scan>
+            <horizontal>
+              <samples>720</samples>
+              <resolution>1</resolution>
+              <min_angle>-3.14159</min_angle>
+              <max_angle>3.14159</max_angle>
+            </horizontal>
+          </scan>
+          <range>
+            <min>0.15</min>
+            <max>12.0</max>
+            <resolution>0.01</resolution>
+          </range>
+        </lidar>
+        <always_on>true</always_on>
+        <visualize>true</visualize>
+      </sensor>
+    </gazebo>
+    <gazebo reference="camera_link">
+      <sensor name="depth_camera" type="rgbd_camera">
+        <topic>camera</topic>
+        <update_rate>10.0</update_rate>
+        <camera>
+          <horizontal_fov>1.047</horizontal_fov>
+          <image>
+            <width>640</width>
+            <height>480</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip><near>0.15</near><far>12.0</far></clip>
+        </camera>
+        <always_on>true</always_on>
+        <visualize>true</visualize>
+      </sensor>
+    </gazebo>
+
+    <gazebo>
+      <plugin filename="gz-sim-diff-drive-system" name="gz::sim::systems::DiffDrive">
+        <left_joint>left_wheel_joint</left_joint>
+        <right_joint>right_wheel_joint</right_joint>
+        <wheel_separation>${wheel_separation}</wheel_separation>
+        <wheel_radius>${wheel_radius}</wheel_radius>
+        <max_linear_acceleration>1.0</max_linear_acceleration>
+        <max_angular_acceleration>4.0</max_angular_acceleration>
+        <topic>cmd_vel</topic>
+        <odom_topic>odom</odom_topic>
+        <frame_id>odom</frame_id>
+        <child_frame_id>base_link</child_frame_id>
+      </plugin>
+      <plugin filename="gz-sim-joint-state-publisher-system" name="gz::sim::systems::JointStatePublisher">
+        <topic>joint_states</topic>
+      </plugin>
+    </gazebo>
+  </xacro:if>
+</robot>

@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>follow_robot</name>
+  <version>1.0.0</version>
+  <description>
+    ROS2 Jazzy person-following and Nav2 navigation package for the
+    ros2-nav-follow project: YOLOv8 + ByteTrack-style tracking + colour-histogram
+    ReID + RGB-D deprojection -> TF2 -> PID/Kalman follower -> cmd_vel,
+    with MQTT / WebSocket telemetry bridges.
+  </description>
+  <maintainer email="cyanxi-eb@users.noreply.github.com">Chen Yanxi</maintainer>
+  <license>MIT</license>
+
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>nav_msgs</exec_depend>
+  <exec_depend>nav2_msgs</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
+  <exec_depend>tf2_geometry_msgs</exec_depend>
+  <exec_depend>cv_bridge</exec_depend>
+  <exec_depend>python3-numpy</exec_depend>
+  <exec_depend>python3-opencv</exec_depend>
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>xacro</exec_depend>
+  <exec_depend>nav2_bringup</exec_depend>
+  <exec_depend>slam_toolbox</exec_depend>
+  <exec_depend>gazebo_ros</exec_depend>
+  <!-- The YOLO / MQTT / WebSocket dependencies are optional at build time:
+       install them manually on the robot:
+         pip install ultralytics paho-mqtt websockets
+       (see docs/ros2_integration.md) -->
+
+  <test_depend>ament_copyright</test_depend>
+  <test_depend>ament_flake8</test_depend>
+  <test_depend>ament_pep257</test_depend>
+  <test_depend>python3-pytest</test_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

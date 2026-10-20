@@ -1,0 +1,73 @@
+# follow_robot controller parameters (PID / Kalman / state machine / telemetry).
+#
+# These mirror navfollow.follow.FollowConfig in the offline simulator.  Loaded by
+# follow_controller.py; tune on the robot with:
+#   ros2 param set /follow_controller desired_distance 1.6
+#
+follow_controller:
+  ros__parameters:
+    control_rate: 10.0
+    use_sim_time: false
+    # --- geometry -------------------------------------------------------
+    desired_distance: 1.40   # [m] hold distance to the person's centre
+    body_radius_offset: 0.22 # [m] depth camera sees the front surface, not the centre
+    # --- velocity limits ------------------------------------------------
+    max_v: 0.45              # [m/s] real-robot limit (simulator uses 0.62)
+    min_v: -0.12
+    max_w: 1.00              # [rad/s]
+    # --- PID gains (distance loop / bearing loop) ------------------------
+    kp_dist: 1.30
+    kd_dist: 0.12
+    kp_bearing: 1.70
+    kd_bearing: 0.06
+    # --- Kalman / prediction --------------------------------------------
+    prediction_horizon: 0.18 # [s] latency compensation
+    # --- occlusion / re-identification ----------------------------------
+    lost_timeout: 0.35       # [s] no detection -> OCCLUDED
+    occluded_timeout: 3.2    # [s] Kalman extrapolation before REACQUIRE
+    reacquire_timeout: 6.0   # [s] scan/search before STOP
+    reid_high: 0.78          # strong ReID match -> immediate reacquire
+    reid_low: 0.52           # weak match -> needs reid_consecutive frames
+    reid_consecutive: 3
+    motion_gate_base: 1.6    # [m] max distance from Kalman prediction
+    motion_gate_growth: 0.6  # [m/s] gate growth while occluded
+    # --- search behaviour ------------------------------------------------
+    search_timeout: 12.0
+    use_nav2_action: true
+
+perception_node:
+  ros__parameters:
+    use_sim_time: false
+    detector: yolo            # yolo | color
+    model_path: yolov8n.pt
+    conf: 0.35
+    device: cpu               # Raspberry Pi 5: cpu; Jetson: cuda:0
+    depth_units: 0.001        # 16UC1 depth image in millimetres
+    sync_slop: 0.05           # [s] ApproximateTimeSynchronizer window
+    undistort: true
+    max_distance: 6.0
+
+tf_broadcaster:
+  ros__parameters:
+    camera_x: 0.12
+    camera_y: 0.0
+    camera_z: 1.05
+    camera_roll: 0.0
+    camera_pitch: 0.14
+    camera_yaw: 0.0
+    laser_x: 0.08
+    laser_z: 0.22
+    publish_odom: true
+
+mqtt_bridge:
+  ros__parameters:
+    host: 127.0.0.1
+    port: 1883
+    prefix: follow_robot
+    rate_hz: 2.0
+
+ws_bridge:
+  ros__parameters:
+    host: 0.0.0.0
+    port: 8765
+    rate_hz: 5.0
